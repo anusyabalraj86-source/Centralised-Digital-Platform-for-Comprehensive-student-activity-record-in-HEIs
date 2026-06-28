@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Activity Record System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #f0f2f8;
+    --border: #dde1ef;
+    --primary: #2d5be3;
+    --primary-dark: #1e40af;
+    --primary-light: #e8eeff;
+    --secondary: #0ea5a0;
+    --text: #1a1d2e;
+    --text2: #4a5068;
+    --text3: #8a91b0;
+    --success: #16a34a;
+    --success-bg: #dcfce7;
+    --danger: #dc2626;
+    --danger-bg: #fee2e2;
+    --warning: #d97706;
+    --warning-bg: #fef3c7;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(45,91,227,0.08);
+    --shadow-lg: 0 8px 32px rgba(45,91,227,0.14);
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  /* ---- UTILITY ---- */
+  .hidden { display: none !important; }
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---- NAV ---- */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    gap: 12px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .nav-logo {
+    font-size: 18px; font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+    flex: 1;
+  }
+  .nav-logo span { color: var(--secondary); }
+  .nav-user {
+    font-size: 13px; color: var(--text2);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .btn-logout {
+    background: none; border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 14px;
+    font-size: 13px; cursor: pointer; color: var(--text2);
+    transition: all .15s;
+  }
+  .btn-logout:hover { background: var(--bg); border-color: var(--primary); color: var(--primary); }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 22px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    border: none; transition: all .15s; text-decoration: none;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn-secondary { background: var(--surface); color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-secondary:hover { background: var(--primary-light); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #15803d; }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn-outline { background: none; border: 1px solid var(--border); color: var(--text2); }
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 16px; font-weight: 700;
+    color: var(--text);
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-title .icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  /* ---- FORMS ---- */
+  .form-group { margin-bottom: 16px; }
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 5px; }
+  input[type=text], input[type=email], input[type=password], input[type=number],
+  input[type=date], select, textarea {
+    width: 100%; padding: 9px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px; font-size: 14px;
+    background: var(--surface); color: var(--text);
+    transition: border-color .15s;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(45,91,227,0.1);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  /* ---- HOME PAGE ---- */
+  .home-hero {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2d5be3 50%, #0ea5a0 100%);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 0; text-align: center;
+    padding: 40px 20px;
+  }
+  .hero-badge {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50px; padding: 6px 18px;
+    font-size: 13px; color: rgba(255,255,255,0.9);
+    margin-bottom: 24px; letter-spacing: 0.5px;
+  }
+  .hero-title {
+    font-size: clamp(32px, 5vw, 58px);
+    font-weight: 800; color: #fff;
+    line-height: 1.1; margin-bottom: 16px;
+    letter-spacing: -1px;
+  }
+  .hero-title span { color: #7dd3fc; }
+  .hero-sub {
+    font-size: 18px; color: rgba(255,255,255,0.8);
+    max-width: 520px; margin: 0 auto 36px; line-height: 1.6;
+  }
+  .hero-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn-hero-primary {
+    background: #fff; color: var(--primary); font-weight: 700;
+    padding: 14px 32px; border-radius: 10px; font-size: 15px;
+    cursor: pointer; border: none; transition: all .15s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.2); }
+  .btn-hero-secondary {
+    background: rgba(255,255,255,0.15); color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    padding: 14px 28px; border-radius: 10px; font-size: 15px;
+    cursor: pointer; transition: all .15s;
+  }
+  .btn-hero-secondary:hover { background: rgba(255,255,255,0.25); }
+  .features-strip {
+    display: flex; gap: 28px; margin-top: 52px; flex-wrap: wrap; justify-content: center;
+  }
+  .feature-pill {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px; padding: 10px 20px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; color: rgba(255,255,255,0.9);
+  }
+  .feature-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #7dd3fc; }
+
+  /* ---- LOGIN SELECTION ---- */
+  .login-select-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); padding: 40px 20px;
+  }
+  .login-select-box { max-width: 560px; width: 100%; text-align: center; }
+  .login-select-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  .login-select-sub { color: var(--text2); margin-bottom: 36px; }
+  .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .role-card {
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: 14px; padding: 32px 20px; cursor: pointer;
+    transition: all .2s; text-align: center;
+  }
+  .role-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+  .role-card .role-icon { font-size: 42px; margin-bottom: 12px; }
+  .role-card .role-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .role-card .role-desc { font-size: 13px; color: var(--text2); }
+
+  /* ---- AUTH FORMS ---- */
+  .auth-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); padding: 40px 20px;
+  }
+  .auth-box { max-width: 500px; width: 100%; }
+  .auth-box .card { padding: 36px; }
+  .auth-header { text-align: center; margin-bottom: 28px; }
+  .auth-header h2 { font-size: 24px; font-weight: 800; }
+  .auth-header p { color: var(--text2); font-size: 14px; margin-top: 5px; }
+  .auth-tabs {
+    display: flex; background: var(--bg); border-radius: 8px; padding: 4px; margin-bottom: 24px;
+  }
+  .auth-tab {
+    flex: 1; padding: 8px; text-align: center; border-radius: 6px;
+    cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text2);
+    transition: all .15s; border: none; background: none;
+  }
+  .auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow); }
+
+  /* ---- DASHBOARD LAYOUT ---- */
+  .dashboard-layout { display: flex; flex: 1; }
+  .sidebar {
+    width: 240px; min-height: calc(100vh - 60px);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0; position: sticky; top: 60px; align-self: flex-start;
+    flex-shrink: 0;
+  }
+  .sidebar-section { padding: 0 14px; margin-bottom: 6px; }
+  .sidebar-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text3); padding: 12px 8px 6px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px;
+    cursor: pointer; font-size: 14px; color: var(--text2);
+    transition: all .12s; border: none; background: none; width: 100%; text-align: left;
+  }
+  .sidebar-item:hover { background: var(--bg); color: var(--text); }
+  .sidebar-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+  .sidebar-item .icon { font-size: 17px; width: 22px; text-align: center; }
+  .main-content { flex: 1; padding: 28px; min-width: 0; }
+
+  /* ---- PAGE HEADER ---- */
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+  .page-header p { color: var(--text2); font-size: 14px; margin-top: 3px; }
+  .breadcrumb { font-size: 13px; color: var(--text3); margin-bottom: 6px; }
+  .breadcrumb span { color: var(--text2); }
+
+  /* ---- STAT CARDS ---- */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .stat-label { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .stat-card .stat-value { font-size: 26px; font-weight: 800; color: var(--text); }
+  .stat-card .stat-sub { font-size: 12px; color: var(--text3); margin-top: 3px; }
+  .stat-card.accent { border-left: 4px solid var(--primary); }
+  .stat-card.green { border-left: 4px solid var(--success); }
+  .stat-card.orange { border-left: 4px solid var(--warning); }
+  .stat-card.teal { border-left: 4px solid var(--secondary); }
+
+  /* ---- SEMESTER GRID ---- */
+  .sem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .sem-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 18px; text-align: center;
+    cursor: pointer; transition: all .15s;
+  }
+  .sem-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow); }
+  .sem-card.has-data { border-color: var(--success); }
+  .sem-card .sem-num { font-size: 22px; font-weight: 800; color: var(--primary); }
+  .sem-card .sem-label { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .sem-card .sem-status {
+    margin-top: 8px; font-size: 11px; font-weight: 600;
+    padding: 3px 8px; border-radius: 50px; display: inline-block;
+  }
+  .sem-card.has-data .sem-status { background: var(--success-bg); color: var(--success); }
+  .sem-card:not(.has-data) .sem-status { background: var(--bg); color: var(--text3); }
+
+  /* ---- SECTION TABS ---- */
+  .section-tabs {
+    display: flex; gap: 4px; background: var(--bg);
+    border-radius: 9px; padding: 4px; margin-bottom: 22px; flex-wrap: wrap;
+  }
+  .section-tab {
+    padding: 8px 16px; border-radius: 7px; border: none; background: none;
+    font-size: 13px; font-weight: 600; color: var(--text2); cursor: pointer; transition: all .12s;
+  }
+  .section-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow); }
+
+  /* ---- TABLE ---- */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--bg); padding: 10px 14px;
+    text-align: left; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3);
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 11px 14px; font-size: 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg); }
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 50px;
+    font-size: 11px; font-weight: 700;
+  }
+  .badge-blue { background: var(--primary-light); color: var(--primary); }
+  .badge-green { background: var(--success-bg); color: var(--success); }
+  .badge-orange { background: var(--warning-bg); color: var(--warning); }
+  .badge-red { background: var(--danger-bg); color: var(--danger); }
+
+  /* ---- ALERT ---- */
+  .alert {
+    padding: 12px 16px; border-radius: 8px; font-size: 14px;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .alert-success { background: var(--success-bg); color: var(--success); border: 1px solid #bbf7d0; }
+  .alert-error { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; }
+  .alert-info { background: var(--primary-light); color: var(--primary); border: 1px solid #bfdbfe; }
+
+  /* ---- ACTIVITY TABLE ---- */
+  .activity-table-wrap { max-height: 400px; overflow-y: auto; }
+  .activity-row { display: grid; grid-template-columns: 60px 1fr 140px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-num { font-weight: 700; color: var(--text3); font-size: 13px; text-align: center; }
+
+  /* ---- PROFILE SECTION ---- */
+  .profile-header {
+    display: flex; align-items: center; gap: 20px; padding: 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    border-radius: 12px; margin-bottom: 22px; color: #fff;
+  }
+  .profile-avatar-lg {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); border: 3px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800; flex-shrink: 0;
+  }
+  .profile-info h2 { font-size: 20px; font-weight: 800; }
+  .profile-info p { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+  .profile-meta { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
+  .profile-meta-item { font-size: 12px; opacity: 0.8; }
+
+  /* ---- FACULTY STUDENT TABLE ---- */
+  .student-table-wrap { overflow-x: auto; }
+  .filter-bar { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+  .filter-bar select { width: auto; padding: 8px 12px; font-size: 13px; }
+  .filter-bar input { width: 200px; padding: 8px 12px; font-size: 13px; }
+
+  /* ---- SEMESTER DETAIL MODAL ---- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 200; display: none; align-items: flex-start;
+    justify-content: center; overflow-y: auto; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--surface); border-radius: 14px;
+    width: 100%; max-width: 900px; margin: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    animation: slideUp .2s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 18px; font-weight: 700; }
+  .modal-body { padding: 24px; }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text3); line-height: 1; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ---- ANALYTICS CHARTS ---- */
+  .chart-bar-wrap { display: flex; align-items: flex-end; gap: 10px; height: 140px; margin-top: 10px; }
+  .chart-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .chart-bar { width: 100%; background: var(--primary); border-radius: 6px 6px 0 0; transition: height .4s; min-height: 4px; }
+  .chart-label { font-size: 11px; color: var(--text3); }
+  .chart-val { font-size: 12px; font-weight: 700; color: var(--primary); }
+
+  /* ---- MISC ---- */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .section-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--text); display: flex; align-items: center; gap: 7px; }
+  .section-title::before { content: ''; display: block; width: 4px; height: 18px; background: var(--primary); border-radius: 2px; }
+  .text-sm { font-size: 13px; }
+  .text-muted { color: var(--text3); }
+  .mt-4 { margin-top: 16px; }
+  .mt-8 { margin-top: 32px; }
+  .mb-4 { margin-bottom: 16px; }
+  .gap-wrap { display: flex; gap: 12px; flex-wrap: wrap; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600;
+    background: var(--primary-light); color: var(--primary);
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .form-row, .form-row-3, .sem-grid, .role-cards { grid-template-columns: 1fr; }
+    .filter-bar input, .filter-bar select { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== HOME PAGE ===================== -->
+<div id="page-home" class="page active">
+  <div class="home-hero">
+    <div class="hero-badge">🎓 Higher Education Institution Portal</div>
+    <h1 class="hero-title">Student Activity<br><span>Record System</span></h1>
+    <p class="hero-sub">Centralized platform to track academic records, internships, sports, hackathons, and all co-curricular activities — semester by semester.</p>
+    <div class="hero-buttons">
+      <button class="btn-hero-primary" onclick="showPage('page-login-select')">Get Started</button>
+      <button class="btn-hero-secondary" onclick="scrollToFeatures()">Learn More ↓</button>
+    </div>
+    <div class="features-strip">
+      <div class="feature-pill"><div class="dot"></div>Student Records</div>
+      <div class="feature-pill"><div class="dot"></div>Faculty Analytics</div>
+      <div class="feature-pill"><div class="dot"></div>8 Semester Tracking</div>
+      <div class="feature-pill"><div class="dot"></div>Internship & Activities</div>
+      <div class="feature-pill"><div class="dot"></div>Excel / PDF Export</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LOGIN SELECTION ===================== -->
+<div id="page-login-select" class="page">
+  <div class="login-select-wrap">
+    <div class="login-select-box">
+      <div style="font-size:36px;margin-bottom:12px">🎓</div>
+      <h2 class="login-select-title">Welcome to SARS</h2>
+      <p class="login-select-sub">Select your role to continue</p>
+      <div class="role-cards">
+        <div class="role-card" onclick="showPage('page-student-auth')">
+          <div class="role-icon">👨‍🎓</div>
+          <div class="role-name">Student</div>
+          <div class="role-desc">Access your academic records, activities, and reports</div>
+        </div>
+        <div class="role-card" onclick="showPage('page-faculty-auth')">
+          <div class="role-icon">👩‍🏫</div>
+          <div class="role-name">Faculty</div>
+          <div class="role-desc">View department records, analytics, and manage students</div>
+        </div>
+      </div>
+      <div class="mt-4">
+        <button class="btn btn-outline btn-sm" onclick="showPage('page-home')">← Back to Home</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== STUDENT AUTH ===================== -->
+<div id="page-student-auth" class="page">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="card">
+        <div class="auth-header">
+          <div style="font-size:32px">👨‍🎓</div>
+          <h2>Student Portal</h2>
+          <p>Sign in or create a new account</p>
+        </div>
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="switchAuthTab('student','login')">Login</button>
+          <button class="auth-tab" onclick="switchAuthTab('student','register')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="student-login-form">
+          <div id="student-login-msg"></div>
+          <div class="form-group">
+            <label>Register Number</label>
+            <input type="text" id="s-login-regno" placeholder="e.g. 21CS001">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="s-login-pass" placeholder="Enter password">
+          </div>
+          <button class="btn btn-primary" style="width:100%" onclick="studentLogin()">Login →</button>
+        </div>
+
+        <!-- Register Form -->
+        <div id="student-register-form" class="hidden">
+          <div id="student-register-msg"></div>
+          <div class="form-row">
+            <div class="form-group"><label>Full Name *</label><input type="text" id="s-reg-name" placeholder="Your full name"></div>
+            <div class="form-group"><label>Register Number *</label><input type="text" id="s-reg-regno" placeholder="e.g. 21CS001"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Department *</label>
+              <select id="s-reg-dept">
+                <option value="">Select Department</option>
+                <option>CSE</option><option>IT</option><option>ECE</option>
+                <option>EEE</option><option>Mechanical</option><option>Civil</option>
+                <option>AI&DS</option><option>AI&ML</option><option>Cyber Security</option><option>Biomedical</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Year *</label>
+              <select id="s-reg-year">
+                <option value="">Select Year</option>
+                <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>10th % *</label><input type="number" id="s-reg-tenth" placeholder="e.g. 90.5" min="0" max="100"></div>
+            <div class="form-group"><label>12th %</label><input type="number" id="s-reg-twelfth" placeholder="e.g. 88.0" min="0" max="100"></div>
+          </div>
+          <div class="form-group"><label>Email ID *</label><input type="email" id="s-reg-email" placeholder="student@college.edu"></div>
+          <div class="form-row">
+            <div class="form-group"><label>Password *</label><input type="password" id="s-reg-pass" placeholder="Min 6 characters"></div>
+            <div class="form-group"><label>Confirm Password *</label><input type="password" id="s-reg-cpass" placeholder="Re-enter password"></div>
+          </div>
+          <button class="btn btn-primary" style="width:100%" onclick="studentRegister()">Create Account →</button>
+        </div>
+
+        <div class="mt-4 text-sm text-muted" style="text-align:center">
+          <button class="btn btn-outline btn-sm" onclick="showPage('page-login-select')">← Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== FACULTY AUTH ===================== -->
+<div id="page-faculty-auth" class="page">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="card">
+        <div class="auth-header">
+          <div style="font-size:32px">👩‍🏫</div>
+          <h2>Faculty Portal</h2>
+          <p>Sign in to access department records</p>
+        </div>
+        <div id="faculty-login-msg"></div>
+        <div class="form-group"><label>Faculty Name</label><input type="text" id="f-login-name" placeholder="Your name"></div>
+        <div class="form-group"><label>Email ID</label><input type="email" id="f-login-email" placeholder="faculty@college.edu"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="f-login-pass" placeholder="Enter password"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="facultyLogin()">Login →</button>
+        <div class="mt-4 text-sm" style="text-align:center;color:var(--text3)">Demo: any email + password "faculty123"</div>
+        <div class="mt-4" style="text-align:center">
+          <button class="btn btn-outline btn-sm" onclick="showPage('page-login-select')">← Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== STUDENT DASHBOARD ===================== -->
+<div id="page-student-dashboard" class="page">
+  <nav>
+    <div class="nav-logo">SARS <span>Student</span></div>
+    <div class="nav-user">
+      <div class="avatar" id="s-nav-avatar">S</div>
+      <span id="s-nav-name">Student</span>
+      <button class="btn-logout" onclick="logout('student')">Logout</button>
+    </div>
+  </nav>
+  <div class="dashboard-layout">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Navigation</div>
+        <button class="sidebar-item active" onclick="showStudentSection('profile')">
+          <span class="icon">👤</span> My Profile
+        </button>
+        <button class="sidebar-item" onclick="showStudentSection('semesters')">
+          <span class="icon">📚</span> Semesters
+        </button>
+        <button class="sidebar-item" onclick="showStudentSection('report')">
+          <span class="icon">📊</span> My Report
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Quick Access</div>
+        <button class="sidebar-item" onclick="showStudentSection('semesters')">
+          <span class="icon">✏️</span> Enter Marks
+        </button>
+        <button class="sidebar-item" onclick="showStudentSection('semesters')">
+          <span class="icon">🏆</span> Activities
+        </button>
+      </div>
+    </div>
+    <div class="main-content" id="student-main">
+      <!-- Content rendered by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ===================== FACULTY DASHBOARD ===================== -->
+<div id="page-faculty-dashboard" class="page">
+  <nav>
+    <div class="nav-logo">SARS <span>Faculty</span></div>
+    <div class="nav-user">
+      <div class="avatar" style="background:#e0fdf4;color:#0f766e">F</div>
+      <span id="f-nav-name">Faculty</span>
+      <button class="btn-logout" onclick="logout('faculty')">Logout</button>
+    </div>
+  </nav>
+  <div class="dashboard-layout">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Navigation</div>
+        <button class="sidebar-item active" onclick="showFacultySection('overview')">
+          <span class="icon">🏠</span> Overview
+        </button>
+        <button class="sidebar-item" onclick="showFacultySection('students')">
+          <span class="icon">👥</span> Student Records
+        </button>
+        <button class="sidebar-item" onclick="showFacultySection('analytics')">
+          <span class="icon">📈</span> Analytics
+        </button>
+      </div>
+    </div>
+    <div class="main-content" id="faculty-main">
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SEMESTER DETAIL MODAL ===================== -->
+<div class="modal-overlay" id="sem-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-sem-title">Semester 1 Details</h3>
+      <button class="modal-close" onclick="closeSemModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-sem-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeSemModal()">Close</button>
+      <button class="btn btn-primary" onclick="saveSemData()">💾 Save Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== STUDENT DETAIL MODAL (Faculty) ===================== -->
+<div class="modal-overlay" id="faculty-student-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="fac-modal-title">Student Details</h3>
+      <button class="modal-close" onclick="closeFacModal()">✕</button>
+    </div>
+    <div class="modal-body" id="fac-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeFacModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== STATE =====================
+let currentUser = null; // { type: 'student'|'faculty', data: {} }
+let currentSem = 1;
+let currentStudentView = null; // for faculty viewing a student
+
+// ===================== STORAGE HELPERS =====================
+const DB = {
+  getStudents: () => JSON.parse(localStorage.getItem('sars_students') || '{}'),
+  saveStudents: (d) => localStorage.setItem('sars_students', JSON.stringify(d)),
+  getStudent: (regno) => DB.getStudents()[regno] || null,
+  saveStudent: (data) => {
+    const all = DB.getStudents();
+    all[data.regno] = data;
+    DB.saveStudents(all);
+  },
+  getSemData: (regno, sem) => {
+    const s = DB.getStudent(regno);
+    return s && s.sems && s.sems[sem] ? s.sems[sem] : null;
+  },
+  saveSemData: (regno, sem, data) => {
+    const all = DB.getStudents();
+    if (!all[regno]) return;
+    if (!all[regno].sems) all[regno].sems = {};
+    all[regno].sems[sem] = data;
+    DB.saveStudents(all);
+  }
+};
+
+// ===================== NAVIGATION =====================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function scrollToFeatures() {
+  window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+}
+
+// ===================== AUTH TAB =====================
+function switchAuthTab(role, tab) {
+  const tabs = document.querySelectorAll('.auth-tab');
+  tabs.forEach((t,i) => t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')));
+  if (role === 'student') {
+    document.getElementById('student-login-form').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('student-register-form').classList.toggle('hidden', tab !== 'register');
+  }
+}
+
+// ===================== STUDENT AUTH =====================
+function studentRegister() {
+  const name = document.getElementById('s-reg-name').value.trim();
+  const regno = document.getElementById('s-reg-regno').value.trim().toUpperCase();
+  const dept = document.getElementById('s-reg-dept').value;
+  const year = document.getElementById('s-reg-year').value;
+  const tenth = document.getElementById('s-reg-tenth').value;
+  const twelfth = document.getElementById('s-reg-twelfth').value;
+  const email = document.getElementById('s-reg-email').value.trim();
+  const pass = document.getElementById('s-reg-pass').value;
+  const cpass = document.getElementById('s-reg-cpass').value;
+  const msgEl = document.getElementById('student-register-msg');
+
+  if (!name||!regno||!dept||!year||!tenth||!email||!pass) {
+    msgEl.innerHTML = '<div class="alert alert-error">⚠️ Please fill all required fields.</div>'; return;
+  }
+  if (pass !== cpass) {
+    msgEl.innerHTML = '<div class="alert alert-error">⚠️ Passwords do not match.</div>'; return;
+  }
+  if (pass.length < 6) {
+    msgEl.innerHTML = '<div class="alert alert-error">⚠️ Password must be at least 6 characters.</div>'; return;
+  }
+  if (DB.getStudent(regno)) {
+    msgEl.innerHTML = '<div class="alert alert-error">⚠️ Register number already exists.</div>'; return;
+  }
+
+  DB.saveStudent({ name, regno, dept, year, tenth, twelfth, email, pass, sems: {}, createdAt: Date.now() });
+  msgEl.innerHTML = '<div class="alert alert-success">✅ Account created! Please login.</div>';
+  setTimeout(() => switchAuthTab('student','login'), 1200);
+}
+
+function studentLogin() {
+  const regno = document.getElementById('s-login-regno').value.trim().toUpperCase();
+  const pass = document.getElementById('s-login-pass').value;
+  const msgEl = document.getElementById('student-login-msg');
+
+  const student = DB.getStudent(regno);
+  if (!student || student.pass !== pass) {
+    msgEl.innerHTML = '<div class="alert alert-error">⚠️ Invalid register number or password.</div>'; return;
+  }
+  currentUser = { type: 'student', data: student };
+  showPage('page-student-dashboard');
+  initStudentDashboard();
+}
+
+// ===================== FACULTY AUTH =====================
+function facultyLogin() {
+  const name = document.getElementById('f-login-name').value.trim();
+  const email = document.getElementById('f-login-email').value.trim();
+  const pass = document.getElementById('f-login-pass').value;
+  const msgEl = document.getElementById('faculty-login-msg');
+
+  if (!email || !pass) {
+    msgEl.innerHTML = '<div class="alert alert-error">⚠️ Please enter email and password.</div>'; return;
+  }
+  if (pass !== 'faculty123') {
+    msgEl.innerHTML = '<div class="alert alert-error">⚠️ Invalid credentials. Use password: faculty123</div>'; return;
+  }
+  currentUser = { type: 'faculty', data: { name: name || 'Faculty', email } };
+  document.getElementById('f-nav-name').textContent = name || 'Faculty';
+  showPage('page-faculty-dashboard');
+  initFacultyDashboard();
+}
+
+function logout(role) {
+  currentUser = null;
+  showPage('page-login-select');
+}
+
+// ===================== STUDENT DASHBOARD =====================
+function initStudentDashboard() {
+  const s = currentUser.data;
+  document.getElementById('s-nav-avatar').textContent = s.name[0].toUpperCase();
+  document.getElementById('s-nav-name').textContent = s.name;
+  showStudentSection('profile');
+}
+
+function showStudentSection(sec) {
+  document.querySelectorAll('#page-student-dashboard .sidebar-item').forEach((el,i) => {
+    el.classList.remove('active');
+  });
+  const map = { profile: 0, semesters: 1, report: 2 };
+  const items = document.querySelectorAll('#page-student-dashboard .sidebar-item');
+  if (map[sec] !== undefined && items[map[sec]]) items[map[sec]].classList.add('active');
+
+  const main = document.getElementById('student-main');
+  const s = currentUser.data;
+
+  if (sec === 'profile') {
+    main.innerHTML = `
+      <div class="page-header">
+        <div class="breadcrumb">Dashboard <span>→ Profile</span></div>
+        <h1>My Profile</h1>
+        <p>Your personal and academic information</p>
+      </div>
+      <div class="profile-header">
+        <div class="profile-avatar-lg">${s.name[0]}</div>
+        <div class="profile-info">
+          <h2>${s.name}</h2>
+          <p>${s.dept} Department</p>
+          <div class="profile-meta">
+            <div class="profile-meta-item">📛 ${s.regno}</div>
+            <div class="profile-meta-item">🎓 ${s.year}</div>
+            <div class="profile-meta-item">📧 ${s.email}</div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card accent">
+          <div class="stat-label">10th Percentage</div>
+          <div class="stat-value">${s.tenth}%</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">12th Percentage</div>
+          <div class="stat-value">${s.twelfth || 'N/A'}${s.twelfth ? '%' : ''}</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-label">Semesters Filled</div>
+          <div class="stat-value">${Object.keys(s.sems||{}).length}/8</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">Department</div>
+          <div class="stat-value" style="font-size:17px">${s.dept}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Quick Actions</div>
+        <div class="gap-wrap">
+          <button class="btn btn-primary" onclick="showStudentSection('semesters')">📚 Enter Semester Data</button>
+          <button class="btn btn-secondary" onclick="showStudentSection('report')">📊 View My Report</button>
+        </div>
+      </div>
+    `;
+  } else if (sec === 'semesters') {
+    const semCards = [1,2,3,4,5,6,7,8].map(n => {
+      const hasData = s.sems && s.sems[n];
+      return `
+        <div class="sem-card ${hasData ? 'has-data' : ''}" onclick="openSemModal(${n})">
+          <div class="sem-num">${n}</div>
+          <div class="sem-label">Semester</div>
+          <div class="sem-status">${hasData ? '✅ Filled' : '⬜ Empty'}</div>
+          ${hasData ? `<div style="font-size:11px;margin-top:6px;color:var(--text3)">${s.sems[n].semPct ? s.sems[n].semPct+'%' : ''}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+    main.innerHTML = `
+      <div class="page-header">
+        <div class="breadcrumb">Dashboard <span>→ Semesters</span></div>
+        <h1>Semester Records</h1>
+        <p>Click any semester to enter or edit your data</p>
+      </div>
+      <div class="sem-grid">${semCards}</div>
+      <div class="alert alert-info">💡 Click on any semester to add marks, internships, sports, hackathons, and activities.</div>
+    `;
+  } else if (sec === 'report') {
+    renderStudentReport(main, s);
+  }
+}
+
+// ===================== SEMESTER MODAL =====================
+function openSemModal(sem) {
+  currentSem = sem;
+  const s = currentUser.data;
+  const d = (s.sems && s.sems[sem]) || {};
+  document.getElementById('modal-sem-title').textContent = `Semester ${sem} — Enter Details`;
+
+  const actRows = Array.from({length: 30}, (_,i) => {
+    const a = d.activities && d.activities[i] ? d.activities[i] : {title:'',score:''};
+    return `
+      <div class="activity-row">
+        <div class="activity-num">A${i+1}</div>
+        <input type="text" class="act-title" data-idx="${i}" placeholder="Activity title..." value="${a.title||''}">
+        <input type="number" class="act-score" data-idx="${i}" placeholder="Marks/Score" value="${a.score||''}" min="0">
+      </div>
+    `;
+  }).join('');
+
+  const sports = d.sports || [{}];
+  const cultural = d.cultural || [{}];
+  const hackathon = d.hackathon || [{}];
+  const workshop = d.workshop || [{}];
+  const paper = d.paper || [{}];
+
+  document.getElementById('modal-sem-body').innerHTML = `
+    <div class="section-tabs">
+      <button class="section-tab active" onclick="switchSemTab(this,'academic')">📚 Academic</button>
+      <button class="section-tab" onclick="switchSemTab(this,'internship')">💼 Internship</button>
+      <button class="section-tab" onclick="switchSemTab(this,'activities')">🏆 Activities</button>
+      <button class="section-tab" onclick="switchSemTab(this,'extracurricular')">⚽ Extra-Curricular</button>
+    </div>
+
+    <!-- ACADEMIC TAB -->
+    <div id="sem-tab-academic">
+      <div class="section-title">Internal Marks</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Internal Test 1</label>
+          <input type="number" id="sem-int1" placeholder="e.g. 45" min="0" max="50" value="${d.int1||''}">
+        </div>
+        <div class="form-group">
+          <label>Internal Test 2</label>
+          <input type="number" id="sem-int2" placeholder="e.g. 47" min="0" max="50" value="${d.int2||''}">
+        </div>
+        <div class="form-group">
+          <label>Internal Average</label>
+          <input type="number" id="sem-int-avg" placeholder="Auto or manual" value="${d.intAvg||''}" readonly>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="section-title">Semester Result</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Semester Total Marks</label>
+          <input type="number" id="sem-marks" placeholder="e.g. 850" value="${d.semMarks||''}">
+        </div>
+        <div class="form-group">
+          <label>Semester Percentage</label>
+          <input type="number" id="sem-pct" placeholder="e.g. 85.0" value="${d.semPct||''}" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>CGPA</label>
+          <input type="number" id="sem-cgpa" placeholder="e.g. 8.5" step="0.01" max="10" value="${d.cgpa||''}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Arrear Subjects (if any)</label>
+        <input type="text" id="sem-arrear" placeholder="Subject names separated by comma" value="${d.arrear||''}">
+      </div>
+    </div>
+
+    <!-- INTERNSHIP TAB -->
+    <div id="sem-tab-internship" class="hidden">
+      <div class="section-title">Internship Details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Company Name</label>
+          <input type="text" id="sem-intern-co" placeholder="e.g. Infosys" value="${d.internCo||''}">
+        </div>
+        <div class="form-group">
+          <label>Duration</label>
+          <input type="text" id="sem-intern-dur" placeholder="e.g. 2 months" value="${d.internDur||''}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Internship Role / Description</label>
+        <textarea id="sem-intern-role" placeholder="Describe your role and responsibilities...">${d.internRole||''}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Certificate (Filename or Link)</label>
+        <input type="text" id="sem-intern-cert" placeholder="e.g. infosys_certificate.pdf or link" value="${d.internCert||''}">
+      </div>
+      <div class="form-group">
+        <label>Research / Project File</label>
+        <input type="text" id="sem-intern-proj" placeholder="Project title or file link" value="${d.internProj||''}">
+      </div>
+    </div>
+
+    <!-- ACTIVITIES TAB -->
+    <div id="sem-tab-activities" class="hidden">
+      <div class="section-title">Activity Records (up to 30)</div>
+      <p class="text-sm text-muted mb-4">Enter activity title and marks/score for each completed activity</p>
+      <div class="activity-table-wrap">
+        ${actRows}
+      </div>
+    </div>
+
+    <!-- EXTRACURRICULAR TAB -->
+    <div id="sem-tab-extracurricular" class="hidden">
+      <div class="section-title">Sports</div>
+      <div class="form-row-3">
+        <div class="form-group"><label>Sport Name</label><input type="text" id="sem-sport-name" placeholder="e.g. Cricket" value="${(d.sports||{})[0]?.name||''}"></div>
+        <div class="form-group">
+          <label>Level</label>
+          <select id="sem-sport-level">
+            <option value="">Select Level</option>
+            ${['College','District','State','National'].map(l => `<option ${(d.sports||{})[0]?.level===l?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label>Achievement</label><input type="text" id="sem-sport-ach" placeholder="e.g. Gold Medal" value="${(d.sports||{})[0]?.achievement||''}"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-title">Cultural Activities</div>
+      <div class="form-row-3">
+        <div class="form-group"><label>Event Name</label><input type="text" id="sem-cult-name" placeholder="e.g. Dance" value="${(d.cultural||{})[0]?.name||''}"></div>
+        <div class="form-group"><label>Prize</label><input type="text" id="sem-cult-prize" placeholder="e.g. 1st Prize" value="${(d.cultural||{})[0]?.prize||''}"></div>
+        <div class="form-group"><label>Certificate</label><input type="text" id="sem-cult-cert" placeholder="File or link" value="${(d.cultural||{})[0]?.cert||''}"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-title">Hackathon Details</div>
+      <div class="form-row">
+        <div class="form-group"><label>Hackathon Name</label><input type="text" id="sem-hack-name" placeholder="e.g. Smart India Hackathon" value="${(d.hackathon||{})[0]?.name||''}"></div>
+        <div class="form-group"><label>Position Obtained</label><input type="text" id="sem-hack-pos" placeholder="e.g. 2nd Place" value="${(d.hackathon||{})[0]?.position||''}"></div>
+      </div>
+      <div class="form-group"><label>Project Title</label><input type="text" id="sem-hack-proj" placeholder="e.g. AI-based Traffic Management" value="${(d.hackathon||{})[0]?.project||''}"></div>
+
+      <div class="divider"></div>
+      <div class="section-title">Workshop / Seminar</div>
+      <div class="form-row">
+        <div class="form-group"><label>Event Name</label><input type="text" id="sem-ws-name" placeholder="e.g. Cloud Computing Workshop" value="${(d.workshop||{})[0]?.name||''}"></div>
+        <div class="form-group"><label>Date</label><input type="date" id="sem-ws-date" value="${(d.workshop||{})[0]?.date||''}"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-title">Paper Presentation</div>
+      <div class="form-row">
+        <div class="form-group"><label>Paper Title</label><input type="text" id="sem-paper-title" placeholder="e.g. IoT in Healthcare" value="${(d.paper||{})[0]?.title||''}"></div>
+        <div class="form-group"><label>Conference Name</label><input type="text" id="sem-paper-conf" placeholder="e.g. ICICI 2024" value="${(d.paper||{})[0]?.conf||''}"></div>
+      </div>
+    </div>
+  `;
+
+  // Auto-compute internal average
+  document.getElementById('sem-int1').addEventListener('input', computeIntAvg);
+  document.getElementById('sem-int2').addEventListener('input', computeIntAvg);
+
+  document.getElementById('sem-modal').classList.add('show');
+}
+
+function computeIntAvg() {
+  const v1 = parseFloat(document.getElementById('sem-int1').value)||0;
+  const v2 = parseFloat(document.getElementById('sem-int2').value)||0;
+  if (v1 || v2) document.getElementById('sem-int-avg').value = ((v1+v2)/2).toFixed(1);
+}
+
+function switchSemTab(btn, tab) {
+  document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['academic','internship','activities','extracurricular'].forEach(t => {
+    const el = document.getElementById('sem-tab-'+t);
+    if (el) el.classList.toggle('hidden', t !== tab);
+  });
+}
+
+function saveSemData() {
+  const s = currentUser.data;
+
+  // Collect activities
+  const activities = [];
+  document.querySelectorAll('.act-title').forEach((el, i) => {
+    activities.push({
+      title: el.value.trim(),
+      score: document.querySelectorAll('.act-score')[i]?.value || ''
+    });
+  });
+
+  const data = {
+    int1: document.getElementById('sem-int1')?.value || '',
+    int2: document.getElementById('sem-int2')?.value || '',
+    intAvg: document.getElementById('sem-int-avg')?.value || '',
+    semMarks: document.getElementById('sem-marks')?.value || '',
+    semPct: document.getElementById('sem-pct')?.value || '',
+    cgpa: document.getElementById('sem-cgpa')?.value || '',
+    arrear: document.getElementById('sem-arrear')?.value || '',
+    internCo: document.getElementById('sem-intern-co')?.value || '',
+    internDur: document.getElementById('sem-intern-dur')?.value || '',
+    internRole: document.getElementById('sem-intern-role')?.value || '',
+    internCert: document.getElementById('sem-intern-cert')?.value || '',
+    internProj: document.getElementById('sem-intern-proj')?.value || '',
+    activities,
+    sports: [{
+      name: document.getElementById('sem-sport-name')?.value || '',
+      level: document.getElementById('sem-sport-level')?.value || '',
+      achievement: document.getElementById('sem-sport-ach')?.value || ''
+    }],
+    cultural: [{
+      name: document.getElementById('sem-cult-name')?.value || '',
+      prize: document.getElementById('sem-cult-prize')?.value || '',
+      cert: document.getElementById('sem-cult-cert')?.value || ''
+    }],
+    hackathon: [{
+      name: document.getElementById('sem-hack-name')?.value || '',
+      position: document.getElementById('sem-hack-pos')?.value || '',
+      project: document.getElementById('sem-hack-proj')?.value || ''
+    }],
+    workshop: [{
+      name: document.getElementById('sem-ws-name')?.value || '',
+      date: document.getElementById('sem-ws-date')?.value || ''
+    }],
+    paper: [{
+      title: document.getElementById('sem-paper-title')?.value || '',
+      conf: document.getElementById('sem-paper-conf')?.value || ''
+    }]
+  };
+
+  DB.saveSemData(s.regno, currentSem, data);
+  // Update in-memory
+  if (!currentUser.data.sems) currentUser.data.sems = {};
+  currentUser.data.sems[currentSem] = data;
+
+  closeSemModal();
+  showStudentSection('semesters');
+
+  // Show success toast
+  const main = document.getElementById('student-main');
+  const toast = document.createElement('div');
+  toast.className = 'alert alert-success';
+  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:999;max-width:320px;box-shadow:var(--shadow-lg)';
+  toast.innerHTML = `✅ Semester ${currentSem} data saved successfully!`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function closeSemModal() {
+  document.getElementById('sem-modal').classList.remove('show');
+}
+
+// ===================== STUDENT REPORT =====================
+function renderStudentReport(main, s) {
+  const sems = s.sems || {};
+  const filledSems = Object.keys(sems).filter(k => sems[k].semPct);
+  const cgpas = filledSems.map(k => parseFloat(sems[k].cgpa)||0).filter(v=>v>0);
+  const avgCgpa = cgpas.length ? (cgpas.reduce((a,b)=>a+b,0)/cgpas.length).toFixed(2) : 'N/A';
+  const internships = filledSems.filter(k => sems[k].internCo).length;
+  const hackathons = filledSems.filter(k => sems[k].hackathon && sems[k].hackathon[0]?.name).length;
+
+  const barHTML = [1,2,3,4,5,6,7,8].map(n => {
+    const pct = sems[n]?.semPct ? parseFloat(sems[n].semPct) : 0;
+    const h = Math.round(pct * 1.2);
+    return `
+      <div class="chart-bar-col">
+        <div class="chart-val">${pct ? pct+'%' : ''}</div>
+        <div class="chart-bar" style="height:${h}px;background:${pct>=75?'var(--success)':pct>=60?'var(--warning)':'var(--primary)'}"></div>
+        <div class="chart-label">S${n}</div>
+      </div>
+    `;
+  }).join('');
+
+  const semTableRows = [1,2,3,4,5,6,7,8].map(n => {
+    const d = sems[n];
+    if (!d) return `<tr><td><strong>Sem ${n}</strong></td><td colspan="5" class="text-muted">No data entered</td></tr>`;
+    return `
+      <tr>
+        <td><strong>Sem ${n}</strong></td>
+        <td>${d.semPct ? d.semPct+'%' : '-'}</td>
+        <td>${d.cgpa || '-'}</td>
+        <td>${d.internCo || '-'}</td>
+        <td>${d.hackathon?.[0]?.name || '-'}</td>
+        <td>${d.arrear || '—'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  main.innerHTML = `
+    <div class="page-header">
+      <div class="breadcrumb">Dashboard <span>→ Report</span></div>
+      <h1>Overall Report</h1>
+      <p>Complete academic and activity summary</p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card accent">
+        <div class="stat-label">Average CGPA</div>
+        <div class="stat-value">${avgCgpa}</div>
+        <div class="stat-sub">Across ${cgpas.length} semesters</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Semesters Filled</div>
+        <div class="stat-value">${filledSems.length}/8</div>
+      </div>
+      <div class="stat-card teal">
+        <div class="stat-label">Internships</div>
+        <div class="stat-value">${internships}</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-label">Hackathons</div>
+        <div class="stat-value">${hackathons}</div>
+      </div>
+    </div>
+    <div class="card mb-4">
+      <div class="card-title">📊 Semester-wise Performance</div>
+      <div class="chart-bar-wrap">${barHTML}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Semester Summary Table</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Semester</th><th>Percentage</th><th>CGPA</th><th>Internship</th><th>Hackathon</th><th>Arrears</th></tr>
+          </thead>
+          <tbody>${semTableRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mt-4 gap-wrap">
+      <button class="btn btn-success" onclick="exportReport()">⬇ Download Report (Text)</button>
+    </div>
+  `;
+}
+
+function exportReport() {
+  const s = currentUser.data;
+  const sems = s.sems || {};
+  let text = `STUDENT ACTIVITY RECORD SYSTEM - REPORT\n`;
+  text += `${'='.repeat(50)}\n`;
+  text += `Name: ${s.name}\nRegNo: ${s.regno}\nDept: ${s.dept}\nYear: ${s.year}\nEmail: ${s.email}\n`;
+  text += `10th: ${s.tenth}% | 12th: ${s.twelfth||'N/A'}%\n\n`;
+  [1,2,3,4,5,6,7,8].forEach(n => {
+    const d = sems[n];
+    text += `--- SEMESTER ${n} ---\n`;
+    if (!d) { text += `No data entered\n\n`; return; }
+    text += `Marks: ${d.semMarks||'-'} | Percentage: ${d.semPct||'-'}% | CGPA: ${d.cgpa||'-'}\n`;
+    text += `Internal: Test1=${d.int1||'-'} Test2=${d.int2||'-'} Avg=${d.intAvg||'-'}\n`;
+    if (d.internCo) text += `Internship: ${d.internCo} (${d.internDur})\n`;
+    if (d.sports?.[0]?.name) text += `Sport: ${d.sports[0].name} - ${d.sports[0].level} - ${d.sports[0].achievement}\n`;
+    if (d.hackathon?.[0]?.name) text += `Hackathon: ${d.hackathon[0].name} - ${d.hackathon[0].position}\n`;
+    text += '\n';
+  });
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${s.regno}_report.txt`;
+  a.click();
+}
+
+// ===================== FACULTY DASHBOARD =====================
+function initFacultyDashboard() {
+  showFacultySection('overview');
+}
+
+function showFacultySection(sec) {
+  document.querySelectorAll('#page-faculty-dashboard .sidebar-item').forEach(el => el.classList.remove('active'));
+  const items = document.querySelectorAll('#page-faculty-dashboard .sidebar-item');
+  const map = { overview: 0, students: 1, analytics: 2 };
+  if (map[sec] !== undefined && items[map[sec]]) items[map[sec]].classList.add('active');
+
+  const main = document.getElementById('faculty-main');
+  const students = DB.getStudents();
+  const allStudents = Object.values(students);
+
+  if (sec === 'overview') {
+    const deptCounts = {};
+    allStudents.forEach(s => { deptCounts[s.dept] = (deptCounts[s.dept]||0)+1; });
+    const deptRows = Object.entries(deptCounts).map(([d,c]) =>
+      `<tr><td>${d}</td><td>${c}</td><td><div style="background:var(--primary);height:8px;border-radius:4px;width:${Math.min(c*20,200)}px"></div></td></tr>`
+    ).join('') || '<tr><td colspan="3" class="text-muted">No students registered yet</td></tr>';
+
+    main.innerHTML = `
+      <div class="page-header">
+        <h1>Faculty Overview</h1>
+        <p>Department-wide student statistics</p>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card accent"><div class="stat-label">Total Students</div><div class="stat-value">${allStudents.length}</div></div>
+        <div class="stat-card green"><div class="stat-label">Departments</div><div class="stat-value">${Object.keys(deptCounts).length}</div></div>
+        <div class="stat-card teal"><div class="stat-label">With Internships</div><div class="stat-value">${allStudents.filter(s=>Object.values(s.sems||{}).some(d=>d.internCo)).length}</div></div>
+        <div class="stat-card orange"><div class="stat-label">With Hackathons</div><div class="stat-value">${allStudents.filter(s=>Object.values(s.sems||{}).some(d=>d.hackathon?.[0]?.name)).length}</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Department-wise Student Count</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Department</th><th>Count</th><th>Distribution</th></tr></thead>
+          <tbody>${deptRows}</tbody></table>
+        </div>
+      </div>
+      <div class="mt-4 card">
+        <div class="card-title">⚡ Quick Actions</div>
+        <div class="gap-wrap">
+          <button class="btn btn-primary" onclick="showFacultySection('students')">👥 View All Students</button>
+          <button class="btn btn-secondary" onclick="showFacultySection('analytics')">📈 View Analytics</button>
+        </div>
+      </div>
+    `;
+  } else if (sec === 'students') {
+    renderFacultyStudents(main, allStudents, '','','');
+  } else if (sec === 'analytics') {
+    renderFacultyAnalytics(main, allStudents);
+  }
+}
+
+function renderFacultyStudents(main, allStudents, filterDept, filterYear, filterSearch) {
+  let filtered = allStudents;
+  if (filterDept) filtered = filtered.filter(s => s.dept === filterDept);
+  if (filterYear) filtered = filtered.filter(s => s.year === filterYear);
+  if (filterSearch) {
+    const q = filterSearch.toLowerCase();
+    filtered = filtered.filter(s => s.name.toLowerCase().includes(q) || s.regno.toLowerCase().includes(q));
+  }
+
+  const rows = filtered.map(s => {
+    const sems = s.sems || {};
+    const cgpas = Object.values(sems).map(d => parseFloat(d.cgpa)||0).filter(v=>v>0);
+    const avgCgpa = cgpas.length ? (cgpas.reduce((a,b)=>a+b,0)/cgpas.length).toFixed(2) : '-';
+    const semFilled = Object.keys(sems).length;
+    const hasIntern = Object.values(sems).some(d=>d.internCo) ? '✅' : '—';
+    const hasHack = Object.values(sems).some(d=>d.hackathon?.[0]?.name) ? '✅' : '—';
+    return `
+      <tr style="cursor:pointer" onclick="openFacultyStudentModal('${s.regno}')">
+        <td><strong>${s.regno}</strong></td>
+        <td>${s.name}</td>
+        <td><span class="badge badge-blue">${s.dept}</span></td>
+        <td>${s.year}</td>
+        <td>${avgCgpa}</td>
+        <td>${semFilled}/8</td>
+        <td>${hasIntern}</td>
+        <td>${hasHack}</td>
+        <td><button class="btn btn-sm btn-outline" onclick="event.stopPropagation();openFacultyStudentModal('${s.regno}')">View →</button></td>
+      </tr>
+    `;
+  }).join('') || '<tr><td colspan="9" class="text-muted" style="text-align:center;padding:30px">No students found</td></tr>';
+
+  main.innerHTML = `
+    <div class="page-header">
+      <h1>Student Records</h1>
+      <p>Click any student to view full details. Students can see their data here after entering it.</p>
+    </div>
+    <div class="filter-bar">
+      <select id="filt-dept" onchange="applyFacultyFilter()">
+        <option value="">All Departments</option>
+        <option>CSE</option><option>IT</option><option>ECE</option><option>EEE</option>
+        <option>Mechanical</option><option>Civil</option><option>AI&DS</option><option>AI&ML</option>
+        <option>Cyber Security</option><option>Biomedical</option>
+      </select>
+      <select id="filt-year" onchange="applyFacultyFilter()">
+        <option value="">All Years</option>
+        <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+      </select>
+      <input type="text" id="filt-search" placeholder="Search by name or reg no..." oninput="applyFacultyFilter()">
+    </div>
+    <div class="card" style="padding:0">
+      <div class="student-table-wrap">
+        <table>
+          <thead>
+            <tr><th>Reg No</th><th>Name</th><th>Dept</th><th>Year</th><th>Avg CGPA</th><th>Sems Filled</th><th>Internship</th><th>Hackathon</th><th>Action</th></tr>
+          </thead>
+          <tbody id="faculty-student-tbody">${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function applyFacultyFilter() {
+  const dept = document.getElementById('filt-dept')?.value || '';
+  const year = document.getElementById('filt-year')?.value || '';
+  const search = document.getElementById('filt-search')?.value || '';
+  const allStudents = Object.values(DB.getStudents());
+  const main = document.getElementById('faculty-main');
+  renderFacultyStudents(main, allStudents, dept, year, search);
+}
+
+function openFacultyStudentModal(regno) {
+  const s = DB.getStudent(regno);
+  if (!s) return;
+  const sems = s.sems || {};
+  document.getElementById('fac-modal-title').textContent = `${s.name} — ${s.regno}`;
+
+  const semSections = [1,2,3,4,5,6,7,8].map(n => {
+    const d = sems[n];
+    if (!d) return `<div style="padding:12px 0;border-bottom:1px solid var(--border);color:var(--text3)"><strong>Sem ${n}:</strong> No data entered</div>`;
+    return `
+      <div style="padding:14px 0;border-bottom:1px solid var(--border)">
+        <div style="font-weight:700;margin-bottom:10px;color:var(--primary)">Semester ${n}</div>
+        <div class="form-row-3">
+          <div><div class="text-muted" style="font-size:12px">Percentage</div><div style="font-weight:600">${d.semPct||'-'}${d.semPct?'%':''}</div></div>
+          <div><div class="text-muted" style="font-size:12px">CGPA</div><div style="font-weight:600">${d.cgpa||'-'}</div></div>
+          <div><div class="text-muted" style="font-size:12px">Internal Avg</div><div style="font-weight:600">${d.intAvg||'-'}</div></div>
+        </div>
+        ${d.internCo ? `<div class="mt-4"><span class="tag">💼 Internship: ${d.internCo} (${d.internDur||''})</span></div>` : ''}
+        ${d.sports?.[0]?.name ? `<div class="mt-4"><span class="tag">⚽ Sport: ${d.sports[0].name} – ${d.sports[0].level} – ${d.sports[0].achievement}</span></div>` : ''}
+        ${d.hackathon?.[0]?.name ? `<div class="mt-4"><span class="tag">💡 Hackathon: ${d.hackathon[0].name} – ${d.hackathon[0].position}</span></div>` : ''}
+        ${d.cultural?.[0]?.name ? `<div class="mt-4"><span class="tag">🎭 Cultural: ${d.cultural[0].name} – ${d.cultural[0].prize}</span></div>` : ''}
+        ${d.paper?.[0]?.title ? `<div class="mt-4"><span class="tag">📄 Paper: ${d.paper[0].title} @ ${d.paper[0].conf}</span></div>` : ''}
+        ${d.workshop?.[0]?.name ? `<div class="mt-4"><span class="tag">🔧 Workshop: ${d.workshop[0].name}</span></div>` : ''}
+        ${d.activities?.some(a=>a.title) ? `<div class="mt-4 text-sm text-muted">${d.activities.filter(a=>a.title).length} activities recorded</div>` : ''}
+        ${d.arrear ? `<div class="mt-4"><span class="badge badge-red">Arrears: ${d.arrear}</span></div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('fac-modal-body').innerHTML = `
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;padding:16px;background:var(--bg);border-radius:10px">
+      <div class="profile-avatar-lg" style="width:50px;height:50px;font-size:20px;background:var(--primary-light);color:var(--primary);border:none">${s.name[0]}</div>
+      <div>
+        <div style="font-size:18px;font-weight:800">${s.name}</div>
+        <div style="color:var(--text2);font-size:13px">${s.regno} · ${s.dept} · ${s.year} · ${s.email}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">10th: ${s.tenth}% | 12th: ${s.twelfth||'N/A'}%</div>
+      </div>
+    </div>
+    <div class="section-title">Semester-wise Data</div>
+    ${semSections}
+  `;
+
+  document.getElementById('faculty-student-modal').classList.add('show');
+}
+
+function closeFacModal() {
+  document.getElementById('faculty-student-modal').classList.remove('show');
+}
+
+// ===================== FACULTY ANALYTICS =====================
+function renderFacultyAnalytics(main, allStudents) {
+  const depts = ['CSE','IT','ECE','EEE','Mechanical','Civil','AI&DS','AI&ML','Cyber Security','Biomedical'];
+  const deptStats = depts.map(dept => {
+    const dStudents = allStudents.filter(s => s.dept === dept);
+    const cgpas = dStudents.flatMap(s => Object.values(s.sems||{}).map(d => parseFloat(d.cgpa)||0)).filter(v=>v>0);
+    const avgCgpa = cgpas.length ? (cgpas.reduce((a,b)=>a+b,0)/cgpas.length).toFixed(2) : 0;
+    return { dept, count: dStudents.length, avgCgpa: parseFloat(avgCgpa) };
+  }).filter(d => d.count > 0);
+
+  const maxCgpa = Math.max(...deptStats.map(d=>d.avgCgpa), 10);
+  const bars = deptStats.map(d => `
+    <div class="chart-bar-col">
+      <div class="chart-val">${d.avgCgpa}</div>
+      <div class="chart-bar" style="height:${Math.round(d.avgCgpa/maxCgpa*120)}px"></div>
+      <div class="chart-label">${d.dept.slice(0,6)}</div>
+    </div>
+  `).join('') || '<div class="text-muted">No data yet</div>';
+
+  const internCount = allStudents.filter(s=>Object.values(s.sems||{}).some(d=>d.internCo)).length;
+  const hackCount = allStudents.filter(s=>Object.values(s.sems||{}).some(d=>d.hackathon?.[0]?.name)).length;
+  const sportsCount = allStudents.filter(s=>Object.values(s.sems||{}).some(d=>d.sports?.[0]?.name)).length;
+
+  main.innerHTML = `
+    <div class="page-header">
+      <h1>Analytics Dashboard</h1>
+      <p>Department-wide performance and participation statistics</p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card accent"><div class="stat-label">Total Students</div><div class="stat-value">${allStudents.length}</div></div>
+      <div class="stat-card teal"><div class="stat-label">Internship Students</div><div class="stat-value">${internCount}</div></div>
+      <div class="stat-card orange"><div class="stat-label">Hackathon Students</div><div class="stat-value">${hackCount}</div></div>
+      <div class="stat-card green"><div class="stat-label">Sports Participants</div><div class="stat-value">${sportsCount}</div></div>
+    </div>
+    <div class="card mb-4">
+      <div class="card-title">📊 Department-wise Avg CGPA</div>
+      ${deptStats.length ? `<div class="chart-bar-wrap">${bars}</div>` : '<div class="text-muted">No semester data yet</div>'}
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Department Performance Table</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Department</th><th>Students</th><th>Avg CGPA</th><th>Internships</th><th>Hackathons</th><th>Sports</th></tr></thead>
+          <tbody>
+            ${depts.map(dept => {
+              const ds = allStudents.filter(s=>s.dept===dept);
+              if (!ds.length) return '';
+              const cgpas = ds.flatMap(s=>Object.values(s.sems||{}).map(d=>parseFloat(d.cgpa)||0)).filter(v=>v>0);
+              const avg = cgpas.length ? (cgpas.reduce((a,b)=>a+b,0)/cgpas.length).toFixed(2) : '-';
+              const intern = ds.filter(s=>Object.values(s.sems||{}).some(d=>d.internCo)).length;
+              const hack = ds.filter(s=>Object.values(s.sems||{}).some(d=>d.hackathon?.[0]?.name)).length;
+              const sport = ds.filter(s=>Object.values(s.sems||{}).some(d=>d.sports?.[0]?.name)).length;
+              return `<tr><td><strong>${dept}</strong></td><td>${ds.length}</td><td>${avg}</td><td>${intern}</td><td>${hack}</td><td>${sport}</td></tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ===================== CLOSE MODAL ON OUTSIDE CLICK =====================
+document.getElementById('sem-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeSemModal();
+});
+document.getElementById('faculty-student-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeFacModal();
+});
+</script>
+</body>
+</html>
